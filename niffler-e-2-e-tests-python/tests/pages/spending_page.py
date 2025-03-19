@@ -3,16 +3,7 @@ from typing import Union, Optional, Dict, Any
 
 
 class SpendingPage:
-    """
-    Класс для работы со страницей расходов.
-    """
     def __init__(self, page: Page) -> None:
-        """
-        Инициализация страницы расходов.
-        
-        Args:
-            page: Объект страницы Playwright.
-        """
         self.page = page
         # Заголовки и основные элементы
         self.add_spending_title = page.locator('.main-content__section-add-spending h2')
