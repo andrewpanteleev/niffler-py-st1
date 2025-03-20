@@ -1,9 +1,9 @@
 from playwright.sync_api import Page, expect
-from typing import Union, Optional, Dict, Any
+from typing import Union, Optional
 
 
 class SpendingPage:
-    def __init__(self, page: Page) -> None:
+    def __init__(self, page: Page):
         self.page = page
         # Заголовки и основные элементы
         self.add_spending_title = page.locator('.main-content__section-add-spending h2')
@@ -65,32 +65,6 @@ class SpendingPage:
     def check_gringotts_image(self):
         expect(self.gringotts_image).to_be_visible()
 
-    def create_spending(
-        self,
-        amount: Union[int, str],
-        category: str,
-        description: Optional[str] = None
-    ) -> dict:
-        self.amount_input.fill(str(amount))
-
-        self.category_select.click()
-        self.category_select.fill(category)
-        self.category_select.press("Enter")
-
-        if description:
-            self.description_input.fill(description)
-
-        self.add_spending_button.click()
-
-        currency = "RUB"
-
-        return {
-            "amount": str(amount),
-            "category": category,
-            "description": description,
-            "currency": currency
-        }
-
     def check_spending_exists(
         self,
         category: str,
@@ -120,22 +94,6 @@ class SpendingPage:
             "all": self.all_time_filter
         }
         period_map[period.lower()].click()
-
-    def select_spending(self):
-        rows = self.spending_table.locator("tr:has(td):has(input[type='checkbox'])")
-        expect(self.spending_table).to_be_visible()
-        
-        count = rows.count()
-        if count == 0:
-            raise ValueError("В таблице нет строк с чекбоксами")
-
-        last_row = rows.nth(count - 1)
-        expect(last_row).to_be_visible()
-        checkbox = last_row.locator("input[type='checkbox']")
-        checkbox.check()
-
-    def delete_selected_spendings(self):
-        self.page.get_by_role("button", name="Delete selected").click()
         
     def check_statistics_visible(self):
         expect(self.statistics_section).to_be_visible()
@@ -145,7 +103,7 @@ class SpendingPage:
         self.add_spending_button.click()
         expect(self.category_required_message).to_be_visible()
         self.category_select.click()
-        self.category_select.fill("Products")
+        self.category_select.fill("School")
         self.category_select.press("Enter")
         self.add_spending_button.click()
         expect(self.amount_required_message).to_be_visible()

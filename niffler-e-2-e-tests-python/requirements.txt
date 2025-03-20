@@ -4,3 +4,7 @@ pytest
 python-dotenv
 requests
 faker
+
+psycopg2-binary
+sqlalchemy
+sqlmodel

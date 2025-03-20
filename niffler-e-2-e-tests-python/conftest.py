@@ -2,42 +2,38 @@ import os
 import pytest
 from dotenv import load_dotenv
 from faker import Faker
-from playwright.sync_api import sync_playwright, Page, Browser, BrowserContext
+from playwright.sync_api import sync_playwright, Page
 from clients.spends_client import SpendsHttpClient
 from tests.pages.login_page import LoginPage
-from typing import Dict, Tuple, Any, List, Optional, Generator, Callable
+from databases.spend_db import SpendDb
+from models.config import Envs
 
 
 @pytest.fixture(scope="session")
-def envs() -> None:
+def envs() -> Envs:
     load_dotenv()
-
-
-@pytest.fixture(scope="session")
-def frontend_url(envs) -> str:
-    return os.getenv("FRONTEND_URL")
-
-
-@pytest.fixture(scope="session")
-def gateway_url(envs) -> str:
-    return os.getenv("GATEWAY_URL")
-
-
-@pytest.fixture(scope="session")
-def app_user(envs) -> Tuple[str, str]:
-    return os.getenv("TEST_USERNAME"), os.getenv("TEST_PASSWORD")
+    return Envs(
+        frontend_url=os.getenv("FRONTEND_URL"),
+        gateway_url=os.getenv("GATEWAY_URL"),
+        spend_db_url=os.getenv("SPENDS_DB_URL"),
+        test_username=os.getenv("TEST_USERNAME"),
+        test_password=os.getenv("TEST_PASSWORD"),
+        invalid_user=os.getenv("INVALID_USER"),
+        invalid_password=os.getenv("INVALID_PASSWORD"),
+        wrong_password=os.getenv("WRONG_PASSWORD")
+    )
 
 
 @pytest.fixture
-def generate_test_user() -> str:
+def generate_test_user():
     fake = Faker()
     return fake.user_name()
 
 
 @pytest.fixture(scope="function")
-def playwright_context() -> Generator[BrowserContext, None, None]:
+def playwright_context():
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1920, "height": 1080})
         yield context
         context.close()
@@ -45,55 +41,50 @@ def playwright_context() -> Generator[BrowserContext, None, None]:
 
 
 @pytest.fixture(scope="function")
-def page(playwright_context: BrowserContext, frontend_url: str) -> Generator[Page, None, None]:
+def page(playwright_context, envs):
     page = playwright_context.new_page()
-    page.goto(frontend_url)
+    page.goto(envs.frontend_url)
     yield page
     page.close()
 
 
 @pytest.fixture(scope="function")
-def auth(page: Page, app_user: Tuple[str, str]) -> str:
-    username, password = app_user
+def auth(page: Page, envs) -> str:
     login = LoginPage(page)
     login.login_button.click()
-    login.sign_in(username, password)
+    login.sign_in(envs)
     page.wait_for_url("**/main")
 
     return page.evaluate("window.sessionStorage.getItem('id_token')")
 
 
 @pytest.fixture(scope="function")
-def spends_client(gateway_url: str, auth: str) -> SpendsHttpClient:
-    client = SpendsHttpClient(gateway_url, auth)
-    return client
+def spends_client(envs, auth) -> SpendsHttpClient:
+    return SpendsHttpClient(envs.gateway_url, auth)
+
+
+@pytest.fixture(scope="session")
+def spend_db(envs) -> SpendDb:
+    return SpendDb(envs.spend_db_url)
 
 
 @pytest.fixture(params=[])
-def category(request: pytest.FixtureRequest, spends_client: SpendsHttpClient) -> str:
+def category(request, spends_client, spend_db):
     category_name = request.param
-    current_categories = spends_client.get_categories()
-    category_names = [category["category"] for category in current_categories]
-    if category_name not in category_names:
-        spends_client.add_category(category_name)
-    return category_name
+    category = spends_client.add_category(category_name)
+    yield category.category
+    spend_db.delete_category(category.id)
 
 
 @pytest.fixture(params=[])
-def spends(request: pytest.FixtureRequest, spends_client: SpendsHttpClient) -> Dict[str, Any]:
-    spend = spends_client.add_spends(request.param)
-    yield spend
-
-    try:
-        all_spends = spends_client.get_spends()
-        spend_exists = any(s["id"] == spend["id"] for s in all_spends)
-
-        if spend_exists:
-            spends_client.remove_spends([spend["id"]])
-    except Exception as e:
-        print(f"Ошибка при удалении расхода {spend['id']}: {e}")
+def spends(request, spends_client):
+    test_spend = spends_client.add_spends(request.param)
+    yield test_spend
+    all_spends = spends_client.get_spends()
+    if test_spend.id in [spend.id for spend in all_spends]:
+        spends_client.remove_spends([test_spend.id])
 
 
 @pytest.fixture(scope="function")
-def main_page(auth: str, page: Page) -> Page:
+def main_page(auth, page: Page):
     return page
