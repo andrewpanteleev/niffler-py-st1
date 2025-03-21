@@ -1,4 +1,5 @@
 import pytest
+import allure
 import time
 from playwright.sync_api import Page, expect
 from .pages.login_page import LoginPage
@@ -10,10 +11,15 @@ from datetime import datetime
 from clients.spends_client import SpendsHttpClient
 from models.spend import SpendAdd
 
+pytestmark = [
+    allure.epic('User management'),
+    ]
+
 
 TEST_CATEGORY = "School"
 
 # 1. Тест успешного логина
+@allure.story('Successful login')
 def test_successful_login(page: Page, envs) -> None:
     login = LoginPage(page)
     login.login_button.click()
@@ -23,6 +29,7 @@ def test_successful_login(page: Page, envs) -> None:
 
 
 # 2. Тест логина несуществующего пользователя
+@allure.story('Non-existent user login')
 def test_non_existent_user_login(page: Page, envs) -> None:
     login = LoginPage(page)
     login.login_button.click()
@@ -31,6 +38,7 @@ def test_non_existent_user_login(page: Page, envs) -> None:
 
 
 # 3. Тест логина с неправильным паролем
+@allure.story('Login with wrong password')
 def test_login_wrong_password(page: Page, envs) -> None:
     login = LoginPage(page)
     login.login_button.click()
@@ -39,6 +47,7 @@ def test_login_wrong_password(page: Page, envs) -> None:
 
 
 # 4. Тест успешной регистрации
+@allure.story('Successful registration')
 def test_successful_registration(page: Page, generate_test_user: str) -> None:
     registration = RegistrationPage(page)
     registration.register_button.click()
@@ -49,6 +58,7 @@ def test_successful_registration(page: Page, generate_test_user: str) -> None:
 
 
 # 5. Тест регистрации с несовпадающими паролями
+@allure.story('Registration with mismatched passwords')
 def test_registration_mismatched_password(page: Page, generate_test_user: str) -> None:
     registration = RegistrationPage(page)
     registration.register_button.click()
@@ -58,6 +68,7 @@ def test_registration_mismatched_password(page: Page, generate_test_user: str) -
 
 
 # 6. Тест регистрации с уже существующим пользователем
+@allure.story('Registration with existing user')
 def test_registration_existing_user(page: Page, envs) -> None:
     registration = RegistrationPage(page)
     registration.register_button.click()
@@ -66,6 +77,7 @@ def test_registration_existing_user(page: Page, envs) -> None:
 
 
 # 7. Тест проверки заголовков на странице расходов
+@allure.story('Spending page titles')
 @Pages.main_page
 def test_spending_page_titles(page: Page) -> None:
     spending_page = SpendingPage(page)
@@ -73,6 +85,7 @@ def test_spending_page_titles(page: Page) -> None:
 
 
 # 8. Тест создания расхода
+@allure.story('Create spending')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(
@@ -96,6 +109,7 @@ def test_create_spending(page: Page, category: str, spends) -> None:
 
 
 # 9. Тест фильтрации расходов
+@allure.story('Spending filters')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(
@@ -125,6 +139,7 @@ def test_spending_filters(page: Page, category: str, spends) -> None:
 
 
 # 10. Тест удаления расходов
+@allure.story('Delete spending')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(
@@ -151,6 +166,7 @@ def test_delete_spending(page: Page, category: str, spends, spends_client: Spend
 
 
 # 11. Тест создания расхода с максимальными значениями
+@allure.story('Create spending with max values')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(
@@ -174,6 +190,7 @@ def test_create_max_values_spending(page: Page, category: str, spends) -> None:
 
 
 # 12. Тест проверки статистики
+@allure.story('Statistics')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(
@@ -198,6 +215,7 @@ def test_statistics(page: Page, category: str, spends) -> None:
 
 
 # 13. Тест валидации формы расходов
+@allure.story('Spending form validation')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(
@@ -217,6 +235,7 @@ def test_spending_form_validation(page: Page, category: str, spends) -> None:
 
 
 # 14. Тест наличие кнопок меню
+@allure.story('Navigation buttons')
 @Pages.main_page
 def test_navigation_buttons(page: Page) -> None:
     spending_page = SpendingPage(page)
@@ -224,6 +243,7 @@ def test_navigation_buttons(page: Page) -> None:
 
 
 # 15. Тест наличия картинки
+@allure.story('Gringotts image visible')
 @Pages.main_page
 def test_gringotts_image_visible(page: Page) -> None:
     spending_page = SpendingPage(page)
@@ -231,6 +251,7 @@ def test_gringotts_image_visible(page: Page) -> None:
 
 
 # 16. Тест выхода из системы
+@allure.story('Logout')
 @Pages.main_page
 def test_logout(page: Page) -> None:
     login = LoginPage(page)

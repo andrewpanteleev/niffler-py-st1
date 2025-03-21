@@ -1,7 +1,13 @@
 from urllib.parse import urljoin
-from models.spend import Category, Spend, SpendAdd
 
+import allure
 import requests
+from allure_commons.types import AttachmentType
+from allure import step
+from requests import Response
+from requests_toolbelt.utils.dump import dump_response
+
+from models.spend import Category, Spend, SpendAdd
 
 
 class SpendsHttpClient:
@@ -16,12 +22,21 @@ class SpendsHttpClient:
             'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
         })
+        self.session.hooks["response"].append(self.attach_response)
 
+    @staticmethod
+    @step('Attach HTTP-response')
+    def attach_response(response: Response, *args, **kwargs):
+        attachment_name = response.request.method + " " + response.request.url
+        allure.attach(dump_response(response), attachment_name, attachment_type=AttachmentType.TEXT)
+
+    @step('API: Get list of categories')
     def get_categories(self) -> list[Category]:
         response = self.session.get(urljoin(self.base_url, "/api/categories/all"))
         self.raise_for_status(response)
         return [Category.model_validate(item) for item in response.json()]
 
+    @step('API: Add category')
     def add_category(self, name: str) -> Category:
         response = self.session.post(urljoin(self.base_url, "/api/categories/add"), json={
             "category": name
@@ -29,18 +44,21 @@ class SpendsHttpClient:
         self.raise_for_status(response)
         return Category.model_validate(response.json())
 
+    @step('API: Get list of spends')
     def get_spends(self) -> list[Spend]:
         url = urljoin(self.base_url, "/api/spends/all")
         response = self.session.get(url)
         self.raise_for_status(response)
         return [Spend.model_validate(item) for item in response.json()]
 
+    @step('API: Add spend')
     def add_spends(self, spend: SpendAdd) -> Spend:
         url = urljoin(self.base_url, "/api/spends/add")
         response = self.session.post(url, json=spend.model_dump())
         self.raise_for_status(response)
         return Spend.model_validate(response.json())
 
+    @step('API: Remove spend')
     def remove_spends(self, ids: list[str]):
         url = urljoin(self.base_url, "/api/spends/remove")
         response = self.session.delete(url, params={"ids": ids})

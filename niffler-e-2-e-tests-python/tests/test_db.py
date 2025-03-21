@@ -1,5 +1,6 @@
 import time
 import pytest
+import allure
 from playwright.sync_api import Page
 from models.spend import SpendAdd
 from clients.spends_client import SpendsHttpClient
@@ -7,10 +8,17 @@ from marks import Pages, TestData
 from datetime import datetime
 
 
+pytestmark = [
+    allure.epic('Database Tests'),
+    allure.feature('Spending Operations')
+]
+
+
 TEST_CATEGORY = "School"
 
 
 # 1. Тест проверки, что при добавлении расхода, расход сохраняется в БД
+@allure.story('DB: Verify spending is added')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(
@@ -29,6 +37,7 @@ def test_spending_should_be_add_db(page: Page, category: str, spends, spend_db, 
 
 
 # 2. Тест проверки, что при удалении расхода, расход удаляется из БД
+@allure.story('DB: Verify spending is deleted')
 @Pages.main_page
 @TestData.category(TEST_CATEGORY)
 @TestData.spends(

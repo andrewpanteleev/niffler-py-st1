@@ -1,5 +1,6 @@
 from playwright.sync_api import Page, expect
 from typing import Union, Optional
+from allure import step
 
 
 class SpendingPage:
@@ -50,21 +51,24 @@ class SpendingPage:
         # Картинки
         self.gringotts_image = page.locator('img.spendings__img')
 
-
+    @step("UI: Check spending page titles")
     def check_spending_page_titles(self):
         expect(self.add_spending_title).to_contain_text("Add new spending")
         expect(self.history_title).to_contain_text("History of spendings")
         expect(self.statistics_canvas).to_be_visible()
 
+    @step("UI: Check navigation buttons")
     def check_navigation_buttons(self):
         expect(self.main_page_button).to_be_visible()
         expect(self.friends_button).to_be_visible()
         expect(self.all_people_button).to_be_visible()
         expect(self.profile_button).to_be_visible()
 
+    @step("UI: Check gringotts image visibility")
     def check_gringotts_image(self):
         expect(self.gringotts_image).to_be_visible()
 
+    @step("UI: Check that spending exists")
     def check_spending_exists(
         self,
         category: str,
@@ -81,11 +85,13 @@ class SpendingPage:
 
         row_locator = self.spending_table.locator(selector).first
         expect(row_locator).to_be_visible()
-        
+
+    @step("UI: Check that spending does not exist")
     def check_spending_not_exists(self, description: str):
         description_locator = self.page.locator(f"text={description}")
         expect(description_locator).not_to_be_visible()
 
+    @step("UI: Filter spendings by period")
     def filter_by_period(self, period: str):
         period_map = {
             "today": self.today_filter,
@@ -94,11 +100,13 @@ class SpendingPage:
             "all": self.all_time_filter
         }
         period_map[period.lower()].click()
-        
+
+    @step("UI: Check statistics visibility")
     def check_statistics_visible(self):
         expect(self.statistics_section).to_be_visible()
         expect(self.statistics_canvas).to_be_visible()
-        
+
+    @step("UI: Check spending form validation")
     def check_form_validation(self):
         self.add_spending_button.click()
         expect(self.category_required_message).to_be_visible()
