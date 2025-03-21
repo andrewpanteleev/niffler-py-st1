@@ -2,5 +2,11 @@ playwright
 pytest-playwright
 pytest
 python-dotenv
+allure-pytest
+requests-toolbelt
 requests
 faker
+
+psycopg2-binary
+sqlalchemy
+sqlmodel

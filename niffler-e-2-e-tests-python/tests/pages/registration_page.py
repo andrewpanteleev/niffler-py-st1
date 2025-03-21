@@ -1,4 +1,5 @@
 from playwright.sync_api import Page, expect
+from allure import step
 
 
 class RegistrationPage:
@@ -13,6 +14,7 @@ class RegistrationPage:
         self.error_message = page.locator('.form__error')
         self.sign_in_button = page.locator('a:text("Sign in!")')
 
+    @step("UI: Sign up")
     def sign_up(self, user: str, password: str, submit_password: str):
         expect(self.username_input).to_be_empty()
         self.username_input.fill(user)
@@ -22,9 +24,11 @@ class RegistrationPage:
         self.submit_password_input.fill(submit_password)
         self.signup_button.click()
 
+    @step("UI: Check registration message")
     def check_registration_message(self):
         expect(self.registration_message).to_contain_text("Congratulations! You've registered")
 
+    @step("UI: Check registration error message")
     def check_error_message(self, username: str = None):
         if username:
             expect(self.error_message).to_contain_text(f'Username `{username}` already exists')

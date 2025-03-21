@@ -1,4 +1,5 @@
 from playwright.sync_api import Page, expect
+from allure import step
 
 
 class LoginPage:
@@ -11,13 +12,31 @@ class LoginPage:
         self.create_new_user_button = page.locator('.form__register')
         self.error_message = page.locator("p.form__error")
 
-
-    def sign_in(self, user: str, password: str):
+    @step('UI: Sign in')
+    def sign_in(self, envs):
         expect(self.username_input).to_be_visible()
-        self.username_input.fill(user)
+        self.username_input.fill(envs.test_username)
         expect(self.password_input).to_be_visible()
-        self.password_input.fill(password)
+        self.password_input.fill(envs.test_password)
         self.signin_button.click()
 
+    @step('UI: Sign in with non-existent user')
+    def sign_in_non_existent_user_login(self, envs):
+        expect(self.username_input).to_be_visible()
+        self.username_input.fill(envs.invalid_user)
+        expect(self.password_input).to_be_visible()
+        self.password_input.fill(envs.invalid_password)
+        self.signin_button.click()
+
+    @step('UI: Sign in with wrong password')
+    def sign_in_wrong_password(self, envs):
+        expect(self.username_input).to_be_visible()
+        self.username_input.fill(envs.test_username)
+        expect(self.password_input).to_be_visible()
+        self.password_input.fill(envs.invalid_password)
+        self.signin_button.click()
+
+
+    @step('UI: Check error message')
     def check_error_message(self):
         expect(self.error_message).to_be_visible()
