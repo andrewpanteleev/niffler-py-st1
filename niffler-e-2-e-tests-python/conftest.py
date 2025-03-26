@@ -9,6 +9,7 @@ from pytest import Item, FixtureDef, FixtureRequest
 from dotenv import load_dotenv
 from faker import Faker
 from playwright.sync_api import sync_playwright, Page
+from clients.auth_client import AuthClient
 from clients.spends_client import SpendsHttpClient
 from tests.pages.login_page import LoginPage
 from databases.spend_db import SpendDb
@@ -41,6 +42,8 @@ def envs() -> Envs:
     envs_instance = Envs(
         frontend_url=os.getenv("FRONTEND_URL"),
         gateway_url=os.getenv("GATEWAY_URL"),
+        auth_url=os.getenv("AUTH_URL"),
+        auth_secret=os.getenv("AUTH_SECRET"),
         spend_db_url=os.getenv("SPENDS_DB_URL"),
         test_username=os.getenv("TEST_USERNAME"),
         test_password=os.getenv("TEST_PASSWORD"),
@@ -76,7 +79,7 @@ def page(playwright_context, envs):
 
 
 @pytest.fixture(scope="function")
-def auth(page: Page, envs) -> str:
+def auth_front_token(page: Page, envs: Envs):
     login = LoginPage(page)
     login.login_button.click()
     login.sign_in(envs)
@@ -87,7 +90,14 @@ def auth(page: Page, envs) -> str:
     return token
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
+def auth_api_token(envs: Envs):
+    token = AuthClient(envs).auth(envs.test_username, envs.test_password)
+    allure.attach(token, name="token.txt", attachment_type=AttachmentType.TEXT)
+    return token
+
+
+@pytest.fixture(scope="session")
 def spends_client(envs, auth) -> SpendsHttpClient:
     return SpendsHttpClient(envs.gateway_url, auth)
 
@@ -115,5 +125,5 @@ def spends(request: FixtureRequest, spends_client):
 
 
 @pytest.fixture(scope="function")
-def main_page(auth, page: Page):
+def main_page(auth_front_token, page: Page):
     return page
