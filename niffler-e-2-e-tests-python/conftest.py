@@ -97,9 +97,9 @@ def auth_api_token(envs: Envs):
     return token
 
 
-@pytest.fixture(scope="session")
-def spends_client(envs, auth) -> SpendsHttpClient:
-    return SpendsHttpClient(envs.gateway_url, auth)
+@pytest.fixture(scope="function")
+def spends_client(envs, auth_front_token) -> SpendsHttpClient:
+    return SpendsHttpClient(envs.gateway_url, auth_front_token)
 
 
 @pytest.fixture(scope="session")
