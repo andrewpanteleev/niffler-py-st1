@@ -7,6 +7,7 @@ from .pages.registration_page import RegistrationPage
 from .pages.spending_page import SpendingPage
 from .pages.profile_page import ProfilePage
 from marks import Pages, TestData
+from models.enums import Category
 from datetime import datetime
 from clients.spends_client import SpendsHttpClient
 from models.spend import SpendAdd
@@ -15,8 +16,6 @@ pytestmark = [
     allure.epic('User management'),
     ]
 
-
-TEST_CATEGORY = "School"
 
 # 1. Тест успешного логина
 @allure.story('Successful login')
@@ -87,12 +86,12 @@ def test_spending_page_titles(page: Page) -> None:
 # 8. Тест создания расхода
 @allure.story('Create spending')
 @Pages.main_page
-@TestData.category(TEST_CATEGORY)
+@TestData.category(Category.SCHOOL)
 @TestData.spends(
     SpendAdd(
         amount=100,
         description=f"Test spending {int(time.time())}",
-        category=TEST_CATEGORY,
+        category=Category.SCHOOL,
         spendDate=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z"),
         currency="RUB"
     )
@@ -111,12 +110,12 @@ def test_create_spending(page: Page, category: str, spends) -> None:
 # 9. Тест фильтрации расходов
 @allure.story('Spending filters')
 @Pages.main_page
-@TestData.category(TEST_CATEGORY)
+@TestData.category(Category.SCHOOL)
 @TestData.spends(
     SpendAdd(
         amount=108.51,
         description="Test filter",
-        category=TEST_CATEGORY,
+        category=Category.SCHOOL,
         spendDate="2025-03-18T00:01:27.955Z",
         currency="RUB"
     )
@@ -141,12 +140,12 @@ def test_spending_filters(page: Page, category: str, spends) -> None:
 # 10. Тест удаления расходов
 @allure.story('Delete spending')
 @Pages.main_page
-@TestData.category(TEST_CATEGORY)
+@TestData.category(Category.SCHOOL)
 @TestData.spends(
     SpendAdd(
         amount=100,
         description=f"To be deleted {int(time.time())}",
-        category=TEST_CATEGORY,
+        category=Category.SCHOOL,
         spendDate=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z"),
         currency="RUB"
     )
@@ -168,12 +167,12 @@ def test_delete_spending(page: Page, category: str, spends, spends_client: Spend
 # 11. Тест создания расхода с максимальными значениями
 @allure.story('Create spending with max values')
 @Pages.main_page
-@TestData.category(TEST_CATEGORY)
+@TestData.category(Category.SCHOOL)
 @TestData.spends(
     SpendAdd(
         amount=999999.99,
         description="a" * 255,
-        category=TEST_CATEGORY,
+        category=Category.SCHOOL,
         spendDate=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z"),
         currency="RUB"
     )
@@ -192,12 +191,12 @@ def test_create_max_values_spending(page: Page, category: str, spends) -> None:
 # 12. Тест проверки статистики
 @allure.story('Statistics')
 @Pages.main_page
-@TestData.category(TEST_CATEGORY)
+@TestData.category(Category.SCHOOL)
 @TestData.spends(
     SpendAdd(
         amount=108.51,
         description="Test statistics",
-        category=TEST_CATEGORY,
+        category=Category.SCHOOL,
         spendDate="2025-03-18T00:01:27.955Z",
         currency="RUB"
     )
@@ -217,12 +216,12 @@ def test_statistics(page: Page, category: str, spends) -> None:
 # 13. Тест валидации формы расходов
 @allure.story('Spending form validation')
 @Pages.main_page
-@TestData.category(TEST_CATEGORY)
+@TestData.category(Category.SCHOOL)
 @TestData.spends(
     SpendAdd(
         amount=108.51,
         description="Test form validation",
-        category=TEST_CATEGORY,
+        category=Category.SCHOOL,
         spendDate="2025-03-18T00:01:27.955Z",
         currency="RUB"
     )
