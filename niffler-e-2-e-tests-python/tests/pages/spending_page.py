@@ -1,5 +1,6 @@
 from playwright.sync_api import Page, expect
 from typing import Union, Optional
+from allure import step
 
 
 class SpendingPage:
@@ -50,47 +51,24 @@ class SpendingPage:
         # Картинки
         self.gringotts_image = page.locator('img.spendings__img')
 
-
+    @step("UI: Check spending page titles")
     def check_spending_page_titles(self):
         expect(self.add_spending_title).to_contain_text("Add new spending")
         expect(self.history_title).to_contain_text("History of spendings")
         expect(self.statistics_canvas).to_be_visible()
 
+    @step("UI: Check navigation buttons")
     def check_navigation_buttons(self):
         expect(self.main_page_button).to_be_visible()
         expect(self.friends_button).to_be_visible()
         expect(self.all_people_button).to_be_visible()
         expect(self.profile_button).to_be_visible()
 
+    @step("UI: Check gringotts image visibility")
     def check_gringotts_image(self):
         expect(self.gringotts_image).to_be_visible()
 
-    def create_spending(
-        self,
-        amount: Union[int, str],
-        category: str,
-        description: Optional[str] = None
-    ) -> dict:
-        self.amount_input.fill(str(amount))
-
-        self.category_select.click()
-        self.category_select.fill(category)
-        self.category_select.press("Enter")
-
-        if description:
-            self.description_input.fill(description)
-
-        self.add_spending_button.click()
-
-        currency = "RUB"
-
-        return {
-            "amount": str(amount),
-            "category": category,
-            "description": description,
-            "currency": currency
-        }
-
+    @step("UI: Check that spending exists")
     def check_spending_exists(
         self,
         category: str,
@@ -107,11 +85,13 @@ class SpendingPage:
 
         row_locator = self.spending_table.locator(selector).first
         expect(row_locator).to_be_visible()
-        
+
+    @step("UI: Check that spending does not exist")
     def check_spending_not_exists(self, description: str):
         description_locator = self.page.locator(f"text={description}")
         expect(description_locator).not_to_be_visible()
 
+    @step("UI: Filter spendings by period")
     def filter_by_period(self, period: str):
         period_map = {
             "today": self.today_filter,
@@ -121,31 +101,17 @@ class SpendingPage:
         }
         period_map[period.lower()].click()
 
-    def select_spending(self):
-        rows = self.spending_table.locator("tr:has(td):has(input[type='checkbox'])")
-        expect(self.spending_table).to_be_visible()
-        
-        count = rows.count()
-        if count == 0:
-            raise ValueError("В таблице нет строк с чекбоксами")
-
-        last_row = rows.nth(count - 1)
-        expect(last_row).to_be_visible()
-        checkbox = last_row.locator("input[type='checkbox']")
-        checkbox.check()
-
-    def delete_selected_spendings(self):
-        self.page.get_by_role("button", name="Delete selected").click()
-        
+    @step("UI: Check statistics visibility")
     def check_statistics_visible(self):
         expect(self.statistics_section).to_be_visible()
         expect(self.statistics_canvas).to_be_visible()
-        
+
+    @step("UI: Check spending form validation")
     def check_form_validation(self):
         self.add_spending_button.click()
         expect(self.category_required_message).to_be_visible()
         self.category_select.click()
-        self.category_select.fill("Products")
+        self.category_select.fill("School")
         self.category_select.press("Enter")
         self.add_spending_button.click()
         expect(self.amount_required_message).to_be_visible()
