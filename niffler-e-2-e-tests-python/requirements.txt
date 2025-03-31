@@ -1,11 +1,16 @@
 playwright
 pytest-playwright
-pytest
+pytest==8.3.5
 python-dotenv
-allure-pytest
+allure-pytest==2.13.5
 requests-toolbelt
 requests
 faker
+curlify==2.2.1
+voluptuous==0.15.2
+jsonschema==4.23.0
+jinja2==3.1.6
+pytest-voluptuous==1.2.0
 
 psycopg2-binary
 sqlalchemy
